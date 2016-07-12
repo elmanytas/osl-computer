@@ -250,15 +250,16 @@ config = get_config("admin-openrc.sh")
 token, token_id = get_auth_token(config)
 # # Actualizamos las cabeceras con el token recién obtenido
 
-env["network"] = create_network(token, token_id, env["name"])
+#env["network"] = create_network(token, token_id, env["name"])
+
+#print ((json.dumps(env, indent=4)))
+#env["server"] = create_computer(token, token_id, env)
+#print ((json.dumps(env, indent=4)))
+
+#time.sleep(10)
+#env["console"] = get_console(token, token_id, env["server"])
 
 print ((json.dumps(env, indent=4)))
-env["server"] = create_computer(token, token_id, env)
-print ((json.dumps(env, indent=4)))
-
-time.sleep(10)
-env["console"] = get_console(token, token_id, env["server"])
-
-print ((json.dumps(env, indent=4)))
-print ((env["console"]["url"]))
+print token_id
+#print ((env["console"]["url"]))
 

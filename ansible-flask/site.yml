@@ -1,0 +1,5 @@
+- name: Deploy flask environment
+  hosts: all
+  connection: local
+  roles:
+  - flaskapp

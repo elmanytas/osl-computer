@@ -1,0 +1,32 @@
+- name: Install apache
+  apt: name=apache2 state=present
+
+- name: Install apache flask module
+  apt: name=libapache2-mod-wsgi state=present
+
+- name: Install flask
+  apt: name=python-flask state=present
+
+- name: Configure flask virtualhost
+  copy: src=flaskapp.conf dest=/etc/apache2/sites-available/flaskapp.conf
+  notify: apache2 restart
+
+- name: Enable flask virtualhost
+  file: src=/etc/apache2/sites-available/flaskapp.conf dest=/etc/apache2/sites-enabled/flaskapp.conf state=link
+  notify: apache2 restart
+
+- name: Disable default virtualhost
+  file: path=/etc/apache2/sites-enabled/000-default.conf state=absent
+  notify: apache2 restart
+
+- name: Install python-requests to call a rest api
+  apt: name=python-requests state=present
+
+- name: Check __init__.py exists
+  stat: path=/var/www/flaskapp/flaskapp/__init__.py
+  register: flaskapp
+
+- name: Create flaskapp structure
+  copy: src=flaskapp dest=/var/www/
+  when: flaskapp.stat.exists == False
+  notify: apache2 restart
