@@ -78,7 +78,8 @@ def get_auth_token(config):
             }
         }
     }
-    """ % (config["OS_USERNAME"], config["OS_PASSWORD"], config["OS_USER_DOMAIN_NAME"], config["OS_PROJECT_ID"], config["OS_USER_DOMAIN_NAME"])
+    """ % (config["OS_USERNAME"], config["OS_PASSWORD"], config["OS_USER_DOMAIN_NAME"], config["OS_PROJECT_ID"],
+           config["OS_USER_DOMAIN_NAME"])
     #print data
     headers["Content-Type"] = 'application/json'
     #
@@ -190,7 +191,8 @@ def create_network(token, token_id, env_name):
         "subnet_id": "%s"
     }
     """ % private_subnet["subnet"]["id"]
-    r = requests.put(network_url + "/v2.0/routers/" + external_router["router"]["id"] + "/add_router_interface", headers=headers, data=data)
+    r = requests.put(network_url + "/v2.0/routers/" + external_router["router"]["id"] + "/add_router_interface",
+                     headers=headers, data=data)
     external_router_connections = json.loads(r.text)
     print ((json.dumps(external_router_connections, indent=4)))
 
