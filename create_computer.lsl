@@ -1,48 +1,97 @@
+key notecardQueryId;
+// script-wise, the first notecard line is line 0, the second line is line 1, etc.
+integer notecardLine;
+
 key http_request_id;
-string os_user = "admin";
-string os_password = "admin";
-string openrc_notecard = "openrc_notecard";
+string notecardName = "openrc_notecard";
+
+// Set of functions that allow to use a dicionary of strings in lsl
+list configuration_dict = [];
+integer get_key_pos(string search_key, list dictionary) {
+    // Returns key position in the array.
+    // This is a private dictionary function.
+    integer key_pos = -1;
+    integer length = 0;
+    length = llGetListLength(dictionary);
+
+    integer i = 0;
+    integer found = 0;
+    while (((i*2) < length) && (found == 0)) {
+        if (search_key == llList2String(dictionary, i*2)) {
+            found = 1;
+            key_pos = i*2;
+        } else {
+            i++;
+        }
+    }
+    return (key_pos);
+}
+
+string get_value(string search_key, list dictionary) {
+    string search_value = "";
+    integer key_pos = get_key_pos(search_key, dictionary);
+
+    if (key_pos >= 0) {
+        search_value = llList2String(dictionary, (key_pos+1));
+    }
+
+    return (search_value);
+}
+
+list set_value(string key_to_insert, string value_to_insert, list dictionary) {
+    list newDictionary = dictionary;
+    integer key_pos = get_key_pos(key_to_insert, dictionary);
+
+    if (key_pos >= 0) {
+        newDictionary = llListReplaceList(newDictionary, [value_to_insert], key_pos, key_pos);
+    } else {
+        newDictionary = newDictionary + [key_to_insert, value_to_insert];
+    }
+    return (newDictionary);
+}
+
+say_dict(list dictionary) {
+    integer length = 0;
+    length = llGetListLength(dictionary);
+
+    integer i = 0;
+    llOwnerSay("{");
+    while ((i*2) < length) {
+        llOwnerSay("    \""+llList2String(dictionary, i*2)+"\": \""+llList2String(dictionary, (i*2)+1)+"\",");
+        i++;
+    }
+    llOwnerSay("}");
+
+}
+/*
+list delete_key(string key_to_delete, list dictionary) {
+}
+*/
+ // End dictionary functions
 
 default
 {
     state_entry()
     {
+        integer length = 0;
         llSay(0, "Script running");
+        length = llGetListLength(configuration_dict);
+        if (length == 0) {
+            llOwnerSay("Loading configuration");
+            state load_config;
+        } else {
+            llOwnerSay("Configuration loaded");
+            llOwnerSay(get_value("name", configuration_dict));
+
+        }
     }
+
     touch_end(integer num_detected)
     {
-        llSay(0, "tocado");
-        string data = "
-        {
-            \"destination_url\" : \"http://openstack-vcenter.fermosit.es:5000/v3/auth/tokens\",
-            \"auth\": {
-                \"identity\": {
-                    \"methods\": [
-                        \"password\"
-                    ],
-                    \"password\": {
-                        \"user\": {
-                            \"name\": \"admin\",
-                            \"password\": \"admin\",
-                            \"domain\": {
-                                \"name\": \"default\"
-                            }
-                        }
-                    }
-                },
-                \"scope\": {
-                    \"project\": {
-                        \"id\": \"3abfcf8f663f47119dc79b046cef8071\",
-                        \"domain\": {
-                            \"name\": \"default\"
-                        }
-                    }
-                }
-            }
-        }";
-//        http_request_id = llHTTPRequest("http://openstack-vcenter.fermosit.es:5000/v3/auth/tokens", [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/json"], data);
-        http_request_id = llHTTPRequest("http://10.42.84.201/oslh2b", [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/json"], data);
+   //     http_request_id = llHTTPRequest("http://10.42.84.201/oslh2b", [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/json"], data);
+        say_dict(configuration_dict);
     }
+
 
     http_response(key request_id, integer status, list metadata, string body)
     {
@@ -54,9 +103,38 @@ default
         llSetText( "status: " + (string)status + "\nbody: " + body, COLOR_BLUE, OPAQUE);
     }
 }
-state create_network {
+state load_config {
     state_entry()
     {
-        llSay(0, "in create_network");
+        llSay(0, "in load_config");
+        // Check the notecard exists, and has been saved
+        if (llGetInventoryKey(notecardName) == NULL_KEY)
+        {
+            llOwnerSay( "Notecard '" + notecardName + "' missing or unwritten");
+            return;
+        }
+        // say("reading notecard named '" + notecardName + "'.");
+        notecardQueryId = llGetNotecardLine(notecardName, notecardLine);
+    }
+
+    dataserver(key query_id, string data)
+    {
+        if (query_id == notecardQueryId)
+        {
+            if (data == EOF) {
+                llOwnerSay("Done reading notecard, read " + (string) notecardLine + " notecard lines.");
+                state default;
+            }
+            else
+            {
+                // bump line number for reporting purposes and in preparation for reading next line
+                ++notecardLine;
+                list clave = llParseString2List(data, [" "], []);
+                configuration_dict = set_value(llList2String(clave, 0), llList2String(clave, 1), configuration_dict);
+                //llOwnerSay((string)configuration_values);
+                //llOwnerSay( "Line: " + (string) notecardLine + " " + data);
+                notecardQueryId = llGetNotecardLine(notecardName, notecardLine);
+            }
+        }
     }
 }

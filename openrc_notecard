@@ -1,0 +1,8 @@
+OS_AUTH_URL http://openstack-vcenter:5000/v3
+OS_PROJECT_ID 9d7812704e104a208603c5d0481bd952
+OS_PROJECT_NAME admin
+OS_USER_DOMAIN_NAME default
+OS_USERNAME admin
+OS_PASSWORD admin
+OS_REGION_NAME RegionOne
+name prueba
