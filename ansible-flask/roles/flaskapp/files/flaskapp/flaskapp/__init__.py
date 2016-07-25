@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from flask import Flask
 from flask import request
 from flask import json
@@ -204,6 +205,48 @@ def create_network(token, token_id, env_name):
     return (network_env)
 
 
+def create_server(token, token_id, env):
+    server_env = {}
+    headers = {}
+    headers["Content-Type"] = 'application/json'
+    headers["X-Auth-Token"] = token_id
+
+    #print ((json.dumps(token, indent=4)))
+    name = env["name"] + "_computer"
+    #image = "a9f3ef90-da4f-47f4-b05a-c8180b3bda60"
+    image = "78eb8e56-d6b5-424d-9a94-f92e02c498f7"
+    flavor = "2"
+    #print ((json.dumps(env, indent=4)))
+    data = """
+    {
+        "server" : {
+            "name" : "%s",
+            "imageRef" : "%s",
+            "flavorRef" : "%s",
+            "availability_zone": "nova",
+            "security_groups": [
+                {
+                    "name": "default"
+                }
+            ],
+            "networks": [
+                {
+                    "uuid": "%s"
+                }
+            ]
+        }
+    }
+    """ % (name, image, flavor, env["network"]["private_net"]["id"])
+    compute_url = get_endpoint(token, "compute", "public")
+    r = requests.post(compute_url + "/servers", headers=headers, data=data)
+    #print (r.text)
+    server_env = json.loads(r.text)
+    #network_url = get_endpoint(token, "network", "public")
+    #print ((json.dumps(server_env, indent=4)))
+
+    return (server_env["server"])
+
+
 def dict2config(dictio):
     config = ""
     for key in list(dictio.keys()):
@@ -233,7 +276,7 @@ def create_computer():
         config["router_id"] = env["network"]["external_router"]["id"]
         config["subnet_id"] = env["network"]["private_subnet"]["id"]
 
-        env["server"] = create_computer(token, token_id, env)
+        env["server"] = create_server(token, token_id, env)
         config["server_id"] = env["server"]["id"]
 
     return dict2config(config)

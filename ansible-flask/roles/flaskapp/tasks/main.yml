@@ -22,11 +22,11 @@
 - name: Install python-requests to call a rest api
   apt: name=python-requests state=present
 
-- name: Check __init__.py exists
-  stat: path=/var/www/flaskapp/flaskapp/__init__.py
-  register: flaskapp
+#- name: Check __init__.py exists
+#  stat: path=/var/www/flaskapp/flaskapp/__init__.py
+#  register: flaskapp
 
 - name: Create flaskapp structure
   copy: src=flaskapp dest=/var/www/
-  when: flaskapp.stat.exists == False
+#  when: flaskapp.stat.exists == False
   notify: apache2 restart

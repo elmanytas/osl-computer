@@ -1,5 +1,4 @@
 - name: Deploy flask environment
-  hosts: all
-  connection: local
+  hosts: osl-computer
   roles:
   - flaskapp

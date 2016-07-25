@@ -2,8 +2,11 @@ key notecardQueryId;
 // script-wise, the first notecard line is line 0, the second line is line 1, etc.
 integer notecardLine;
 
-key http_request_id;
 string notecardName = "openrc_notecard";
+
+
+key http_request_id;
+
 
 // Set of functions that allow to use a dicionary of strings in lsl
 list configuration_dict = [];
@@ -63,6 +66,19 @@ say_dict(list dictionary) {
     llOwnerSay("}");
 
 }
+list get_keys(list dictionary) {
+    list key_list= [];
+
+    integer length = 0;
+    length = llGetListLength(dictionary);
+
+    integer i = 0;
+    while ((i*2) < length) {
+        key_list=key_list + [llList2String(dictionary, i*2)];
+        i++;
+    }
+    return (key_list);
+}
 /*
 list delete_key(string key_to_delete, list dictionary) {
 }
@@ -88,19 +104,34 @@ default
 
     touch_end(integer num_detected)
     {
-   //     http_request_id = llHTTPRequest("http://10.42.84.201/oslh2b", [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/json"], data);
-        say_dict(configuration_dict);
+        list key_list = get_keys(configuration_dict);
+        llOwnerSay((string)key_list);
+
+        string data = "";
+        integer i = 0;
+        integer length = llGetListLength(key_list);
+        while (i<=length) {
+            data = data + llList2String(key_list, i) + " " + get_value(llList2String(key_list, i), configuration_dict);
+            llOwnerSay(llList2String(key_list, i));
+            i++;
+            if (i<=length) {
+                data = data + "\n";
+            }
+        }
+
+        llOwnerSay(data);
+
+        http_request_id = llHTTPRequest("http://10.42.84.201/create_computer", [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/json"], data);
     }
 
 
     http_response(key request_id, integer status, list metadata, string body)
     {
         if (request_id != http_request_id) return;// exit if unknown
-
         vector COLOR_BLUE = <0.0, 0.0, 1.0>;
         float  OPAQUE     = 1.0;
         //llSetText("metadata: " + (string)metadata, COLOR_BLUE, OPAQUE);
-        llSetText( "status: " + (string)status + "\nbody: " + body, COLOR_BLUE, OPAQUE);
+        llSetText( "statusssss: " + (string)status + "\nbody: " + body, COLOR_BLUE, OPAQUE);
     }
 }
 state load_config {
