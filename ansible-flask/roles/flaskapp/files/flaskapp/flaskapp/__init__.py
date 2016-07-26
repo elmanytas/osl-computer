@@ -254,6 +254,24 @@ def dict2config(dictio):
 
     return (config)
 
+@app.route('/create_computer_mock', methods=['POST'])
+def create_computer_mock():
+    data = """
+router_id 647a4c8f-f055-461d-bd91-b7c224f4acd9
+server_id 00633113-acfc-41fc-8b23-88d2e84c1a90
+name prueba
+OS_USERNAME admin
+subnet_id ca2cfacb-de0a-4705-a334-9a4cbb709f41
+OS_PROJECT_ID 9d7812704e104a208603c5d0481bd952
+OS_REGION_NAME RegionOne
+OS_USER_DOMAIN_NAME default
+OS_AUTH_URL http://openstack-vcenter:5000/v3
+OS_PROJECT_NAME admin
+OS_PASSWORD admin
+net_id bee1007e-1289-4c75-9dd5-dbe11a3fdba5
+"""
+    return (data)
+
 
 @app.route('/create_computer', methods=['POST'])
 def create_computer():
@@ -323,7 +341,7 @@ def get_console_url():
         env["server"]["id"] = config["server_id"]
         env["console"] = get_console(token, token_id, env["server"])
 
-    return env["console"]["url"]
+    return ("console_url " + env["console"]["url"])
 
 
 if __name__ == '__main__':
