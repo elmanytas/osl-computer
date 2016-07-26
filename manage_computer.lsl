@@ -111,8 +111,12 @@ default
                     done++;
                     state get_computer_url;
                 } else {
+                    llSetPrimMediaParams(1,
+                              [PRIM_MEDIA_AUTO_PLAY,TRUE,
+                               PRIM_MEDIA_CURRENT_URL,get_value("console_url", configuration_dict),
+                               PRIM_MEDIA_HOME_URL,get_value("console_url", configuration_dict)]
+                               );
                     llOwnerSay("Configuration loaded");
-                    llOwnerSay(get_value("name", configuration_dict));
                 }
             }
         }
