@@ -1,3 +1,5 @@
+//http://www.3greeneggs.com
+
 key notecardQueryId;
 // script-wise, the first notecard line is line 0, the second line is line 1, etc.
 integer notecardLine;
@@ -8,6 +10,9 @@ string notecardName = "openrc_notecard";
 key http_request_id;
 
 integer done = 0;
+
+
+string computer_provider = "10.42.84.201";
 
 
 // Set of functions that allow to use a dicionary of strings in lsl
@@ -109,23 +114,26 @@ default
                 length = llStringLength(get_value("console_url", configuration_dict));
                 if ((length == 0) && (done < 3)) {
                     done++;
-                    state get_computer_url;
+                    llSetTimerEvent(5.0);
+//                    state get_computer_url;
                 } else {
                     llSetPrimMediaParams(1,
                               [PRIM_MEDIA_AUTO_PLAY,TRUE,
                                PRIM_MEDIA_CURRENT_URL,get_value("console_url", configuration_dict),
                                PRIM_MEDIA_HOME_URL,get_value("console_url", configuration_dict)]
                                );
+                    llSetTimerEvent(60.0);
                     llOwnerSay("Configuration loaded");
                 }
             }
         }
     }
-/*
-    touch_end(integer num_detected)
+
+    timer()
     {
-        state create_computer;
-    } */
+        llSay(0, "Getting new console url");
+        state get_computer_url;
+    }
 }
 
 state get_computer_url {
@@ -150,7 +158,7 @@ state get_computer_url {
 
         //llOwnerSay(data);
 
-        http_request_id = llHTTPRequest("http://10.42.84.201/get_console_url", [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/json"], data);
+        http_request_id = llHTTPRequest("http://" + computer_provider + "/get_console_url", [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/json"], data);
     }
 
     http_response(key request_id, integer status, list metadata, string body)
@@ -203,7 +211,7 @@ state create_computer {
 
         //llOwnerSay(data);
 
-        http_request_id = llHTTPRequest("http://10.42.84.201/create_computer_mock", [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/json"], data);
+        http_request_id = llHTTPRequest("http://" + computer_provider + "/create_computer_mock", [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/json"], data);
     }
 
 
@@ -230,6 +238,47 @@ state create_computer {
         //say_dict(configuration_dict);
         state default;
     }
+}
+state delete_computer {
+    state_entry()
+    {
+        llOwnerSay("In delete_computer");
+
+        list key_list = get_keys(configuration_dict);
+        //llOwnerSay((string)key_list);
+
+        string data = "";
+        integer i = 0;
+        integer length = llGetListLength(key_list);
+        while (i<=length) {
+            data = data + llList2String(key_list, i) + " " + get_value(llList2String(key_list, i), configuration_dict);
+            //llOwnerSay(llList2String(key_list, i));
+            i++;
+            if (i<=length) {
+                data = data + "\n";
+            }
+        }
+
+        //llOwnerSay(data);
+
+        http_request_id = llHTTPRequest("http://" + computer_provider + "/delete_computer", [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/json"], data);
+    }
+    http_response(key request_id, integer status, list metadata, string body)
+    {
+        llOwnerSay("before saving computer configuration");
+        //say_dict(configuration_dict);
+
+        if (request_id != http_request_id) return;// exit if unknown
+        if (status != 200) return;
+        //vector COLOR_BLUE = <0.0, 0.0, 1.0>;
+        //float  OPAQUE     = 1.0;
+        //llSetText("metadata: " + (string)metadata, COLOR_BLUE, OPAQUE);
+        //llOwnerSay("status: " + (string)status);
+        //llOwnerSay("body: " + (string)body);
+        configuration_dict = [];
+        state default;
+    }
+
 }
 state load_config {
     state_entry()

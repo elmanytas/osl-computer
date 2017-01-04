@@ -79,12 +79,16 @@ def get_auth_token(config):
             }
         }
     }
-    """ % (config["OS_USERNAME"], config["OS_PASSWORD"], config["OS_USER_DOMAIN_NAME"], config["OS_PROJECT_ID"],
+    """ % (config["OS_USERNAME"],
+           config["OS_PASSWORD"],
+           config["OS_USER_DOMAIN_NAME"],
+           config["OS_PROJECT_ID"],
            config["OS_USER_DOMAIN_NAME"])
     #print data
     headers["Content-Type"] = 'application/json'
     #
-    r = requests.post(config["OS_AUTH_URL"] + "/auth/tokens", data=data, headers=headers)
+    r = requests.post(config["OS_AUTH_URL"] + "/auth/tokens",
+                      data=data, headers=headers)
     token = json.loads(r.text)
     token_id = r.headers["X-Subject-Token"]
     #print json.dumps(token, indent=4)
@@ -118,7 +122,7 @@ def create_network(token, token_id, env_name):
     network_url = get_endpoint(token, "network", "public")
 
     r = requests.get(network_url + "/v2.0/networks", headers=headers)
-    #r = requests.post(network_url + "/v2.0/networks", headers=headers, data=data)
+    #r = requests.post(network_url + "/v2.0/networks",headers=headers,data=data)
     #print r.text
     networks = json.loads(r.text)
     #print json.dumps(networks, indent=4)
@@ -140,7 +144,8 @@ def create_network(token, token_id, env_name):
         }
     }
     """ % private_net_name
-    r = requests.post(network_url + "/v2.0/networks", headers=headers, data=data)
+    r = requests.post(network_url + "/v2.0/networks",
+                      headers=headers, data=data)
     private_net = json.loads(r.text)
     print ((json.dumps(private_net, indent=4)))
     # Creamos la subred de la instancia
@@ -186,7 +191,8 @@ def create_network(token, token_id, env_name):
     print ((json.dumps(external_router, indent=4)))
 
     # Conectamos el router público con la red privada
-    # add_router_interface_url = routers_url + "/" + external_router_id + "/add_router_interface"
+    # add_router_interface_url = routers_url + "/" + external_router_id +
+    # "/add_router_interface"
     data = """
     {
         "subnet_id": "%s"
@@ -254,6 +260,7 @@ def dict2config(dictio):
 
     return (config)
 
+
 @app.route('/create_computer_mock', methods=['POST'])
 def create_computer_mock():
     data = """
@@ -277,7 +284,8 @@ net_id bee1007e-1289-4c75-9dd5-dbe11a3fdba5
 def create_computer():
     '''
     create_computer
-    This creates a server and returns a list of net_id, subnet_id, router_id, server_id and console_url.
+    This creates a server and returns a list of net_id, subnet_id, router_id,
+    server_id and console_url.
     Console url can be configured in a media prim.
     The other data can be used to delete the server.
     '''
@@ -300,6 +308,48 @@ def create_computer():
     return dict2config(config)
 
 
+def delete_server(token, token_id, server_id):
+    headers = {}
+    headers["Content-Type"] = 'application/json'
+    headers["X-Auth-Token"] = token_id
+
+    compute_url = get_endpoint(token, "compute", "public")
+    requests.delete(compute_url + "/servers/" + server_id, headers=headers)
+
+    return
+
+
+def delete_network(token, token_id, net_id, subnet_id, router_id):
+    headers = {}
+    headers["Content-Type"] = 'application/json'
+    headers["X-Auth-Token"] = token_id
+
+    network_url = get_endpoint(token, "network", "public")
+
+    #r = requests.put(network_url + "/v2.0/routers/" + external_router["router"]["id"] + "/add_router_interface",
+                     #headers=headers, data=data)
+    #r = requests.post(network_url + "/v2.0/routers", headers=headers, data=data)
+    #r = requests.post(network_url + "/v2.0/subnets", headers=headers, data=data)
+    return
+
+
+@app.route('/delete_computer', methods=['POST'])
+def delete_computer():
+    '''
+    delete_computer
+    This deletes a computer and returns 200 if ok
+    '''
+    if request.method == 'POST':
+        config = {}
+        config = config2dict(request.data)
+
+        token, token_id = get_auth_token(config)
+        delete_server(token, token_id, config["server_id"])
+        delete_network(token, token_id,
+                       config["net_id"], config["subnet_id"],
+                       config["router_id"])
+
+
 def get_console(token, token_id, server):
     headers = {}
     headers["Content-Type"] = 'application/json'
@@ -319,7 +369,8 @@ def get_console(token, token_id, server):
     #}
     #"""
     compute_url = get_endpoint(token, "compute", "public")
-    r = requests.post(compute_url + "/servers/" + server["id"] + "/action", headers=headers, data=data)
+    r = requests.post(compute_url + "/servers/" + server["id"] + "/action",
+                      headers=headers, data=data)
     print ((r.text))
     console_env = json.loads(r.text)
     print ((json.dumps(console_env, indent=4)))
