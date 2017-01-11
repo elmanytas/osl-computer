@@ -15,7 +15,7 @@ export OS_AUTH_URL=http://openstack-vcenter:5000/v3
 
 # With the addition of Keystone we have standardized on the term **project**
 # as the entity that owns the resources.
-export OS_PROJECT_ID=9d7812704e104a208603c5d0481bd952
+export OS_PROJECT_ID=9b0989dfbdbd4d048f88720d4ccbf9ac
 export OS_PROJECT_NAME="admin"
 export OS_USER_DOMAIN_NAME="default"
 if [ -z "$OS_USER_DOMAIN_NAME" ]; then unset OS_USER_DOMAIN_NAME; fi
