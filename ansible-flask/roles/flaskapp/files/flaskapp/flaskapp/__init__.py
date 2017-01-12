@@ -115,11 +115,11 @@ def create_network(token, token_id, env_name):
     # - creamos router en subred privada y pública
     # - asignamos puerto a router
 
+    network_url = get_endpoint(token, "network", "public")
+
     headers = {}
     headers["Content-Type"] = 'application/json'
     headers["X-Auth-Token"] = token_id
-
-    network_url = get_endpoint(token, "network", "public")
 
     r = requests.get(network_url + "/v2.0/networks", headers=headers)
     #r = requests.post(network_url + "/v2.0/networks",headers=headers,data=data)
